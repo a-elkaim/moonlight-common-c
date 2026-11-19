@@ -38,7 +38,6 @@ int main(void) {
     CHECK(BE32(arrival->packet.header.size) == sizeof(SS_CONTROLLER_ARRIVAL_PACKET) - 4);
     CHECK(LE16(arrival->packet.controllerArrival.capabilities) & LI_CCAP_PS_SPEAKER_PCM);
     free(binding); free(arrival); free(fallback);
-    memset(currentQueuedControllerPacket, 0, sizeof(currentQueuedControllerPacket));
 
     // The legacy API still emits exactly the old arrival and MC fallback.
     CHECK(LiSendControllerArrivalEvent(3, 8, LI_CTYPE_PS, 0, LI_CCAP_RUMBLE) == 0);
@@ -46,7 +45,6 @@ int main(void) {
     CHECK(arrival && fallback && !take());
     CHECK(LE32(arrival->packet.header.magic) == SS_CONTROLLER_ARRIVAL_MAGIC);
     free(arrival); free(fallback);
-    memset(currentQueuedControllerPacket, 0, sizeof(currentQueuedControllerPacket));
 
     ControllerSpeakerPcmCallback = NULL;
     CHECK(LiSendControllerSpeakerArrivalEvent(3, 8, LI_CTYPE_PS, 0, LI_CCAP_PS_SPEAKER_PCM, 42) == 0);
@@ -54,13 +52,11 @@ int main(void) {
     CHECK(arrival && fallback && !take());
     CHECK(!(LE16(arrival->packet.controllerArrival.capabilities) & LI_CCAP_PS_SPEAKER_PCM));
     free(arrival); free(fallback);
-    memset(currentQueuedControllerPacket, 0, sizeof(currentQueuedControllerPacket));
     AppVersionQuad[3] = 0; // Non-Sunshine host retains only ordinary MC input.
     CHECK(LiSendControllerSpeakerArrivalEvent(3, 8, LI_CTYPE_PS, 0, LI_CCAP_PS_SPEAKER_PCM, 42) == 0);
     fallback = take();
     CHECK(fallback && !take());
     free(fallback);
-    memset(currentQueuedControllerPacket, 0, sizeof(currentQueuedControllerPacket));
     initialized = false;
     LbqSignalQueueShutdown(&packetQueue);
     LbqSignalQueueShutdown(&packetHolderFreeList);
